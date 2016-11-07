@@ -155,6 +155,8 @@ class Digest
     shasum.digest('hex')[0..@options.precision-1]
 
   _moveFile: (file, hash) ->
+    @_moveMapFile(file, hash)
+
     newFile = @_addHashToPath(file, hash)
     fs.renameSync(file, newFile)
 
@@ -164,21 +166,38 @@ class Digest
         newInfixFile = @_addInfixToPath newFile, infix
         fs.renameSync(infixFile, newInfixFile)
 
+  _moveMapFile: (file, hash) ->
+    mapFile = file+'.map'
+    console.log "Trying #{mapFile}"
+    if fs.existsSync(mapFile)
+      contents = fs.readFileSync(file, 'UTF-8')
+      ext = pathlib.extname(file)
+      base = pathlib.basename(file, ext)
+      contents = contents.replace /\/\/# sourceMappingURL=.*$/,
+        "//# sourceMappingURL=#{base}-#{hash}#{ext}.map"
+      fs.writeFileSync(file, contents)
+      newMapFile = @_addHashToSourceMap(file, hash)
+      console.log "New Map File #{newMapFile}"
+      fs.renameSync(file+'.map', newMapFile)
+
   _validDigestFile: (file) ->
     if !fs.existsSync(file)
       warn "Missing hashed version of file #{file}. Skipping."
       return false
     fs.statSync(file).isFile()
 
-  _addHashToPath: (path, hash) ->
+  _addHashToSourceMap: (path, hash) ->
+    @_addHashToPath path, hash, '.map'
+
+  _addHashToPath: (path, hash, suffix='') ->
     if hash
       dir = pathlib.dirname(path)
       ext = pathlib.extname(path)
       base = pathlib.basename(path, ext)
-      newName = "#{base}-#{hash}#{ext}"
+      newName = "#{base}-#{hash}#{ext}"+suffix
       pathlib.posix.join(dir, newName)
     else
-      path
+      path+suffix
 
   _addInfixToPath: (path, infix) ->
     dir = pathlib.dirname(path)
