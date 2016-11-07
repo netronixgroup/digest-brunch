@@ -168,7 +168,6 @@ class Digest
 
   _moveMapFile: (file, hash) ->
     mapFile = file+'.map'
-    console.log "Trying #{mapFile}"
     if fs.existsSync(mapFile)
       contents = fs.readFileSync(file, 'UTF-8')
       ext = pathlib.extname(file)
@@ -177,7 +176,6 @@ class Digest
         "//# sourceMappingURL=#{base}-#{hash}#{ext}.map"
       fs.writeFileSync(file, contents)
       newMapFile = @_addHashToSourceMap(file, hash)
-      console.log "New Map File #{newMapFile}"
       fs.renameSync(file+'.map', newMapFile)
 
   _validDigestFile: (file) ->
