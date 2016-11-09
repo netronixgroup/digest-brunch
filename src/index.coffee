@@ -172,8 +172,9 @@ class Digest
       contents = fs.readFileSync(file, 'UTF-8')
       ext = pathlib.extname(file)
       base = pathlib.basename(file, ext)
-      contents = contents.replace /\/\/# sourceMappingURL=.*$/,
-        "//# sourceMappingURL=#{base}-#{hash}#{ext}.map"
+      contents = contents
+        .replace /sourceMappingURL=.*\.map(.{0,3})$/,
+        "sourceMappingURL=#{base}-#{hash}#{ext}.map$1"
       fs.writeFileSync(file, contents)
       newMapFile = @_addHashToSourceMap(file, hash)
       fs.renameSync(file+'.map', newMapFile)
